@@ -9,3 +9,4 @@ pypdf
 python-dotenv
 tiktoken
 numpy==1.26.4
+langchain-text-splitters
