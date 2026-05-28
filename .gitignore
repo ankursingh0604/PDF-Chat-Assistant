@@ -1,0 +1,10 @@
+*.pdf
+*.csv
+.env
+__pycache__/
+*.pyc
+chroma_db/
+LLM-1.py
+pdf_chat.py
+practice.py
+.streamlit/
