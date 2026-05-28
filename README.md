@@ -6,11 +6,10 @@ A RAG-powered chatbot that lets you upload any PDF and have a conversation with 
 - 📄 Upload any PDF file
 - 💬 Conversational Q&A with memory
 - 📚 Shows source page numbers for every answer
-- ⚡ Persistent vector store — fast after first load
 - 🧠 Remembers conversation context
 
 ## Tech Stack
-- Python, LangChain, Chroma, HuggingFace Embeddings, Groq API (Llama 3.1 8B), Streamlit
+- Python, LangChain, FAISS, HuggingFace Embeddings, Groq API (Llama 3.1 8B), Streamlit
 
 ## Setup
 1. Get free API key from console.groq.com
