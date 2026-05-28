@@ -19,4 +19,4 @@ A RAG-powered chatbot that lets you upload any PDF and have a conversation with 
 4. `streamlit run app.py`
 
 ## Live Demo
-🚀 [Try it here](your-streamlit-link-here)
+🚀 [Try it here](https://pdf-chat-assistant-kbgbzopc3twpcvwugznpg4.streamlit.app/)
