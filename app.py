@@ -34,6 +34,8 @@ if "pdf_loaded" not in st.session_state:
     st.session_state.pdf_loaded = False
 if "current_pdf" not in st.session_state:
     st.session_state.current_pdf = None
+if "num_pages" not in st.session_state:
+    st.session_state.num_pages = 0
 
 # Process PDF and create chain
 
@@ -102,10 +104,11 @@ with st.sidebar:
                 st.session_state.chain = chain
                 st.session_state.pdf_loaded = True
                 st.session_state.current_pdf = uploaded_file.name
+                st.session_state.num_pages = num_pages  # ← save to session state
                 st.session_state.messages = []
 
         st.success(f"✅ {uploaded_file.name}")
-        st.info(f"📃 Pages: {num_pages}")
+        st.info(f"📃 Pages: {st.session_state.num_pages}")  # ← read from session state
 
     st.divider()
     if st.button("🗑️ Clear Chat"):
