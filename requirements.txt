@@ -2,9 +2,10 @@ streamlit
 langchain
 langchain-groq
 langchain-community
+langchain-huggingface
 sentence-transformers
-chromadb
+chromadb==0.4.24
 pypdf
 python-dotenv
 tiktoken
-langchain-huggingface
+numpy==1.26.4
