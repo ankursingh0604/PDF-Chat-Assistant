@@ -1,11 +1,11 @@
 streamlit
-langchain
+langchain==0.3.25
 langchain-groq
-langchain-community
+langchain-community==0.3.24
 langchain-huggingface
 langchain-text-splitters
 sentence-transformers
-chromadb==0.4.24
+faiss-cpu
 pypdf
 python-dotenv
 tiktoken

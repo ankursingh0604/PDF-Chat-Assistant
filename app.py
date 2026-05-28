@@ -1,14 +1,14 @@
 import os
+import tempfile
 import streamlit as st
 from dotenv import load_dotenv
 from langchain_groq import ChatGroq
 from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_community.vectorstores import Chroma
+from langchain_community.vectorstores import FAISS
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
 from langchain_community.document_loaders import PyPDFLoader
-import tempfile
 
 load_dotenv()
 
@@ -24,7 +24,7 @@ st.title("📄 Chat with your PDF")
 st.markdown("*Upload any PDF and ask questions about it*")
 st.divider()
 
-# Init session state for messages, chain, and PDF status
+# Initalize session state
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -35,7 +35,7 @@ if "pdf_loaded" not in st.session_state:
 if "current_pdf" not in st.session_state:
     st.session_state.current_pdf = None
 
-# Process PDF and create chain (cached so it only runs once per unique PDF)
+# Process PDF and create chain
 
 @st.cache_resource
 def process_pdf(file_bytes, filename):
@@ -43,47 +43,40 @@ def process_pdf(file_bytes, filename):
         tmp.write(file_bytes)
         tmp_path = tmp.name
 
-    persist_dir = f"./chroma_db/{filename.replace('.pdf', '').replace(' ', '_')}"
+    # Load PDF
+    loader = PyPDFLoader(tmp_path)
+    docs = loader.load()
+    num_pages = len(docs)
 
+    # Split
+    splitter = RecursiveCharacterTextSplitter(
+        chunk_size=1000,
+        chunk_overlap=200
+    )
+    chunks = splitter.split_documents(docs)
+
+    # Embeddings
     embeddings = HuggingFaceEmbeddings(
         model_name="sentence-transformers/all-MiniLM-L6-v2"
     )
 
-    if os.path.exists(persist_dir):
-        vectorstore = Chroma(
-            persist_directory=persist_dir,
-            embedding_function=embeddings
-        )
-        num_pages = vectorstore._collection.count()
-    else:
-        loader = PyPDFLoader(tmp_path)
-        docs = loader.load()
-        num_pages = len(docs)
+    # FAISS vector store
+    vectorstore = FAISS.from_documents(chunks, embeddings)
 
-        splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1000,
-            chunk_overlap=200
-        )
-        chunks = splitter.split_documents(docs)
-
-        vectorstore = Chroma.from_documents(
-            chunks,
-            embeddings,
-            persist_directory=persist_dir
-        )
-        vectorstore.persist()
-
+    # Model
     model = ChatGroq(
         api_key=os.getenv("GROQ_API_KEY"),
         model="llama-3.1-8b-instant"
     )
 
+    # Memory
     memory = ConversationBufferMemory(
         memory_key="chat_history",
         return_messages=True,
         output_key="answer"
     )
 
+    # Chain
     chain = ConversationalRetrievalChain.from_llm(
         llm=model,
         retriever=vectorstore.as_retriever(search_kwargs={"k": 3}),
@@ -93,14 +86,13 @@ def process_pdf(file_bytes, filename):
 
     return chain, num_pages
 
-#Sidebar
+# Sidebar
 
 with st.sidebar:
     st.header("📂 Upload PDF")
     uploaded_file = st.file_uploader("Choose a PDF file", type="pdf")
 
     if uploaded_file:
-        # Only process if it's a NEW pdf
         if st.session_state.current_pdf != uploaded_file.name:
             with st.spinner("Processing PDF..."):
                 chain, num_pages = process_pdf(
@@ -110,10 +102,10 @@ with st.sidebar:
                 st.session_state.chain = chain
                 st.session_state.pdf_loaded = True
                 st.session_state.current_pdf = uploaded_file.name
-                st.session_state.messages = []  # clear chat for new PDF
+                st.session_state.messages = []
 
         st.success(f"✅ {uploaded_file.name}")
-        st.info(f"📃 Chunks: {st.session_state.chain.retriever.vectorstore._collection.count()}")
+        st.info(f"📃 Pages: {num_pages}")
 
     st.divider()
     if st.button("🗑️ Clear Chat"):
@@ -125,34 +117,31 @@ with st.sidebar:
 if not st.session_state.pdf_loaded:
     st.info("👈 Upload a PDF from the sidebar to start chatting!")
 else:
-    # Create a container for messages
+    # Create container for messages
     chat_container = st.container()
 
-    # Chat input — OUTSIDE container so it stays at bottom
+    # Chat input
     prompt = st.chat_input("Ask anything about your PDF...")
 
     # Process new input
     if prompt:
-        # Save user message
         st.session_state.messages.append({
             "role": "user",
             "content": prompt
         })
 
-        # Get response
         with st.spinner("Thinking..."):
             result = st.session_state.chain({"question": prompt})
             answer = result["answer"]
             sources = result["source_documents"]
 
-        # Save assistant message
         st.session_state.messages.append({
             "role": "assistant",
             "content": answer,
             "sources": sources
         })
 
-    # Display ALL messages inside container
+    # Display ALL messages
     with chat_container:
         for message in st.session_state.messages:
             with st.chat_message(message["role"]):
