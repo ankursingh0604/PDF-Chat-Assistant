@@ -3,10 +3,10 @@ langchain
 langchain-groq
 langchain-community
 langchain-huggingface
+langchain-text-splitters
 sentence-transformers
 chromadb==0.4.24
 pypdf
 python-dotenv
 tiktoken
 numpy==1.26.4
-langchain-text-splitters
