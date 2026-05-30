@@ -4,11 +4,9 @@ langchain-groq
 langchain-community==0.3.24
 langchain-huggingface
 langchain-text-splitters
-langchain-core==0.3.52
 sentence-transformers
 faiss-cpu
 pypdf
 python-dotenv
 tiktoken
 numpy==1.26.4
-pydantic==2.7.4
