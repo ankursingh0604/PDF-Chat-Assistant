@@ -63,7 +63,7 @@ Streaming Response + Source Citations
 
 1. Get a free API key from [console.groq.com](https://console.groq.com)
 
-2. Clone the repo
+2. Clone the repository
 ```bash
 git clone https://github.com/ankursingh0604/PDF-Chat-Assistant
 cd PDF-Chat-Assistant
